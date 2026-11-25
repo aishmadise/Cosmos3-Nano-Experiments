@@ -1,0 +1,16 @@
+# Safety net only. Keep unblurred originals OUTSIDE this folder entirely.
+raw/
+unblurred/
+*_raw.*
+*_unblurred.*
+
+# Archives from the Brev sessions
+*.tgz
+*.tar.gz
+*.zip
+
+# Working files
+_packing_list.md
+.DS_Store
+__pycache__/
+.env
