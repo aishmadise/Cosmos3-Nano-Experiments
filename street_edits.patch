@@ -1,0 +1,499 @@
+diff --git a/.agents/skills/cookbooks/cosmos3/nim/examples/reasoner_cases.yaml b/.agents/skills/cookbooks/cosmos3/nim/examples/reasoner_cases.yaml
+index 079cffb..9709cc5 100644
+--- a/.agents/skills/cookbooks/cosmos3/nim/examples/reasoner_cases.yaml
++++ b/.agents/skills/cookbooks/cosmos3/nim/examples/reasoner_cases.yaml
+@@ -346,3 +346,329 @@ cases:
+       kind: text
+     review:
+       - Describes the skillet action and a plausible immediate cooking step.
++
++  # --- Portfolio additions: my fixed-camera street video ---
++  # Each case adds my pixel budget (mm_processor_kwargs) via request_extensions.
++  # longest_edge 25165824 is my estimate for about 14k tokens on a 10 s, 720p clip
++  # at 4 fps (NVIDIA: best at about 16k tokens or fewer). Check "usage" in each response.json.
++  street_caption:
++    title: Describe my street video
++    category: captioning
++    media:
++      type: video
++      asset: street_full_4fps.mp4
++    prompt: Describe the video in detail.
++    sampling:
++      seed: 0
++    request_extensions:
++      mm_processor_kwargs: {size: {shortest_edge: 1568, longest_edge: 25165824}}
++    output:
++      kind: text
++    review:
++      - Describes the moving cars and people without inventing objects that are not in the clip.
++      - Treats the camera as fixed, not moving.
++
++  street_timeline:
++    title: Timeline of cars and people in my street video
++    category: temporal_localization
++    media:
++      type: video
++      asset: street_full_4fps.mp4
++    prompt: Describe the notable events in the provided video. Provide the result in json format with 'mm:ss.ff' format for time depiction for each event.Use keywords 'start', 'end' and 'caption' in the json output.
++    sampling:
++      seed: 0
++    request_extensions:
++      mm_processor_kwargs: {size: {shortest_edge: 1568, longest_edge: 25165824}}
++    output:
++      kind: json_schema
++      schema: temporal_events_timecodes
++    review:
++      - Each car or person entering or leaving appears as an event.
++      - Event times match what I see when I scrub through the video.
++
++  street_boxes:
++    title: Box every car and person in a still frame
++    category: spatial_reasoning
++    media:
++      type: image
++      asset: street_frame.png
++    prompt: Locate the accurate bounding box of every car and every person in the image. Return a json.
++    sampling:
++      seed: 0
++    output:
++      kind: json_schema
++      schema: grounding_boxes
++      visualization: boxes
++    review:
++      - Every visible car and person has one box, and no box covers empty road.
++
++  street_predict:
++    title: Predict what happens after the first 7 seconds
++    category: embodied_reasoning
++    media:
++      type: video
++      asset: street_first7s_4fps.mp4
++    prompt: "The video is from a fixed camera watching a street. What will the cars and people most likely do in the next 3 seconds? Answer the question using the following format: <think> Your reasoning. </think> Write your final answer immediately after the </think> tag."
++    sampling:
++      seed: 0
++    request_extensions:
++      mm_processor_kwargs: {size: {shortest_edge: 1568, longest_edge: 25165824}}
++    output:
++      kind: text
++    review:
++      - Compare the prediction with street_last3s_24fps.mp4 (the real last 3 seconds).
++
++  # Plausibility checks. The prompt is NVIDIA's physical_plausibility prompt,
++  # with the line about their sample's "rising wall" removed.
++  street_plausibility_real:
++    title: Plausibility of the real last 3 seconds (control)
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_last3s_24fps.mp4
++    prompt: &plausibility_prompt |-
++      Is this video physically plausible/possible according to your understanding of e.g. object permanence, shape constancy (objects maintain shape over time), continuous trajectories of objects? Assume it is the normal laws of physics.
++      Your answer should be based on the events in the video and ignore the quality of the simulation engine.
++      (A) Possible
++      (B) Impossible
++    sampling:
++      seed: 0
++    request_extensions: &street_budget
++      mm_processor_kwargs: {size: {shortest_edge: 1568, longest_edge: 25165824}}
++    output:
++      kind: text
++    review:
++      - Real footage, so the expected answer is (A) Possible. Anything else is a false alarm.
++
++  street_plausibility_continue:
++    title: Plausibility of the generated continuation
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_continue.mp4
++    prompt: *plausibility_prompt
++    sampling:
++      seed: 0
++    request_extensions: *street_budget
++    output:
++      kind: text
++    review:
++      - Compare the verdict with my own frame-by-frame check of the clip.
++
++  street_plausibility_pedestrian:
++    title: Plausibility of the generated pedestrian edge case
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_pedestrian.mp4
++    prompt: *plausibility_prompt
++    sampling:
++      seed: 0
++    request_extensions: *street_budget
++    output:
++      kind: text
++    review:
++      - Compare the verdict with my own frame-by-frame check of the clip.
++
++  street_plausibility_cyclist:
++    title: Plausibility of the generated cyclist edge case
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_cyclist.mp4
++    prompt: *plausibility_prompt
++    sampling:
++      seed: 0
++    request_extensions: *street_budget
++    output:
++      kind: text
++    review:
++      - Compare the verdict with my own frame-by-frame check of the clip.
++
++  street_plausibility_night:
++    title: Plausibility of the night version (Transfer)
++    category: physical_reasoning
++    media:
++      type: video
++      asset: transfer_street_night.mp4
++    prompt: *plausibility_prompt
++    sampling:
++      seed: 0
++    request_extensions: *street_budget
++    output:
++      kind: text
++    review:
++      - Compare the verdict with my own frame-by-frame check of the clip.
++
++  street_plausibility_rain:
++    title: Plausibility of the rain version (Transfer)
++    category: physical_reasoning
++    media:
++      type: video
++      asset: transfer_street_rain.mp4
++    prompt: *plausibility_prompt
++    sampling:
++      seed: 0
++    request_extensions: *street_budget
++    output:
++      kind: text
++    review:
++      - Compare the verdict with my own frame-by-frame check of the clip.
++
++  # --- Nov 15 follow-ups: my targeted "out of nowhere" question ---
++  # Rebuilt Nov 23 from the documented prompt (the Nov 19 zoom case below reuses it word for word).
++  street_permanence_cyclist:
++    title: Object-permanence check on the generated cyclist clip
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_cyclist.mp4
++    prompt: "Watch every person and bicycle in this video. Does any person, bicycle, or vehicle suddenly appear out of nowhere or disappear, instead of entering from the edge of the frame or from behind something? Answer the question using the following format: <think> Your reasoning. </think> Write your final answer immediately after the </think> tag."
++    sampling:
++      seed: 0
++    request_extensions: *street_budget
++    output:
++      kind: text
++    review:
++      - Correct answer is yes. A cyclist in dark clothing forms out of nothing where the light-clothed cyclist rides out of view.
++
++  street_permanence_real:
++    title: Object-permanence check on the real last 3 seconds (control)
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_last3s_24fps.mp4
++    prompt: "Watch every person and bicycle in this video. Does any person, bicycle, or vehicle suddenly appear out of nowhere or disappear, instead of entering from the edge of the frame or from behind something? Answer the question using the following format: <think> Your reasoning. </think> Write your final answer immediately after the </think> tag."
++    sampling:
++      seed: 0
++    request_extensions: *street_budget
++    output:
++      kind: text
++    review:
++      - Real footage, so the correct answer is no. Check the reasoning against my own viewing, including the cyclist next to the black SUV.
++
++
++  # --- Nov 19 retest: seven questions about the duplicate cyclist ---
++  # NVIDIA's <think> format, same pixel budget as the video cases.
++  street_count_cyclist:
++    title: Count cyclists when the dark-clothed cyclist appears
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_cyclist.mp4
++    prompt: "How many cyclists are visible at the moment the cyclist in dark clothing first appears? Describe where each one is. Answer the question using the following format: <think> Your reasoning. </think> Write your final answer immediately after the </think> tag."
++    sampling:
++      seed: 0
++    request_extensions: &cyclist_budget
++      mm_processor_kwargs: {size: {shortest_edge: 1568, longest_edge: 25165824}}
++    output:
++      kind: text
++    review:
++      - Correct answer is two, small, near the top right, partly behind the white car.
++      - Two means it sees both, so the permanence miss is a reasoning gap.
++
++  street_track_cyclist:
++    title: Track each cyclist in the generated clip
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_cyclist.mp4
++    prompt: &track_prompt "Describe each cyclist in this video: where each one starts, where it goes, and where it ends. Answer the question using the following format: <think> Your reasoning. </think> Write your final answer immediately after the </think> tag."
++    sampling:
++      seed: 0
++    request_extensions: *cyclist_budget
++    output:
++      kind: text
++    review:
++      - Correct is two cyclists, light clothing riding away and fading, dark clothing appearing near that spot.
++      - One cyclist described means it merged the two.
++
++  street_track_real:
++    title: Track each cyclist in the real last 3 seconds (control)
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_last3s_24fps.mp4
++    prompt: *track_prompt
++    sampling:
++      seed: 0
++    request_extensions: *cyclist_budget
++    output:
++      kind: text
++    review:
++      - Real footage. Check against my own viewing, including the distant bicycle next to the black SUV near the stop sign.
++
++  street_permanence_cyclist_zoom:
++    title: Object-permanence check on a zoomed crop of the cyclist region
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_cyclist_crop.mp4
++    prompt: "Watch every person and bicycle in this video. Does any person, bicycle, or vehicle suddenly appear out of nowhere or disappear, instead of entering from the edge of the frame or from behind something? Answer the question using the following format: <think> Your reasoning. </think> Write your final answer immediately after the </think> tag."
++    sampling:
++      seed: 0
++    request_extensions: *cyclist_budget
++    output:
++      kind: text
++    review:
++      - Same question as street_permanence_cyclist, on a 2x zoom of the top right. Only the video changed.
++      - Correct answer is yes. Yes here but no on the full clip means size and distance caused the miss.
++
++  street_plausibility_cyclist_zoom:
++    title: NVIDIA's plausibility check on the zoomed cyclist region
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_cyclist_crop.mp4
++    prompt: |-
++      Is this video physically plausible/possible according to your understanding of e.g. object permanence, shape constancy (objects maintain shape over time), continuous trajectories of objects? Assume it is the normal laws of physics.
++      Your answer should be based on the events in the video and ignore the quality of the simulation engine.
++      (A) Possible
++      (B) Impossible
++    sampling:
++      seed: 0
++    request_extensions: *cyclist_budget
++    output:
++      kind: text
++    review:
++      - Same prompt as street_plausibility_cyclist (NVIDIA's, rising-wall line removed), on the 2x zoom. Only the video changed.
++      - Correct answer is (B) Impossible. (B) here but (A) on the full clip means NVIDIA's critic works on close-ups.
++
++  street_plausibility_real_zoom:
++    title: NVIDIA's plausibility check on the same zoom of real footage (control)
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_last3s_crop.mp4
++    prompt: |-
++      Is this video physically plausible/possible according to your understanding of e.g. object permanence, shape constancy (objects maintain shape over time), continuous trajectories of objects? Assume it is the normal laws of physics.
++      Your answer should be based on the events in the video and ignore the quality of the simulation engine.
++      (A) Possible
++      (B) Impossible
++    sampling:
++      seed: 0
++    request_extensions: *cyclist_budget
++    output:
++      kind: text
++    review:
++      - Real footage, same crop as C4. Correct is (A). (B) here means the zoom itself triggers "Impossible".
++
++  street_plausibility_cyclist_zoom_think:
++    title: C4 with reasoning shown
++    category: physical_reasoning
++    media:
++      type: video
++      asset: street_cyclist_crop.mp4
++    prompt: |-
++      Is this video physically plausible/possible according to your understanding of e.g. object permanence, shape constancy (objects maintain shape over time), continuous trajectories of objects? Assume it is the normal laws of physics.
++      Your answer should be based on the events in the video and ignore the quality of the simulation engine.
++      (A) Possible
++      (B) Impossible
++      Answer the question using the following format: <think> Your reasoning. </think> Write your final answer immediately after the </think> tag.
++    sampling:
++      seed: 0
++    request_extensions: *cyclist_budget
++    output:
++      kind: text
++    review:
++      - Shows what made it answer (B) on the zoomed clip. Does the reasoning mention the cyclist splitting?
+diff --git a/.agents/skills/cookbooks/cosmos3/nim/examples/transfer.py b/.agents/skills/cookbooks/cosmos3/nim/examples/transfer.py
+index e9a2a4b..b56f88a 100644
+--- a/.agents/skills/cookbooks/cosmos3/nim/examples/transfer.py
++++ b/.agents/skills/cookbooks/cosmos3/nim/examples/transfer.py
+@@ -34,6 +34,21 @@ CASES = tuple(f"precomputed_{hint}" for hint in PRECOMPUTED_HINTS) + (
+     "derived_blur",
+ )
+ 
++# --- Portfolio additions: restyle my street clip, keeping its layout (edges) ---
++STREET_VIDEO = COSMOS3_ROOT / "reasoner" / "assets" / "street_transfer_30fps.mp4"
++STREET_PROMPTS = {
++    "street_night": (
++        "The same street at night, lit by streetlights and car headlights, as cars"
++        " and pedestrians move through it. The camera is fixed and does not move."
++    ),
++    "street_rain": (
++        "The same street during heavy rain, with a wet, reflective road and"
++        " raindrops, as cars and pedestrians move through it. The camera is fixed"
++        " and does not move."
++    ),
++}
++CASES = CASES + tuple(STREET_PROMPTS)
++
+ 
+ def precomputed_request(hint: str) -> dict:
+     prompt_path = TRANSFER_ROOT / hint / "prompt.json"
+@@ -93,6 +108,13 @@ def derived_request(hint: str) -> dict:
+ 
+ 
+ def build_request(case: str) -> dict:
++    if case in STREET_PROMPTS:
++        # NVIDIA's derived-edge request, with my video and prompt swapped in.
++        request = derived_request("edge")
++        request["input_reference"] = media_to_data_url(STREET_VIDEO)
++        request["prompt"] = STREET_PROMPTS[case]
++        request["resolution"] = "720_9_16"  # my phone video is vertical
++        return request
+     if case.startswith("precomputed_"):
+         return precomputed_request(case.removeprefix("precomputed_"))
+     return derived_request(case.removeprefix("derived_"))
+@@ -101,18 +123,59 @@ def build_request(case: str) -> dict:
+ def main() -> None:
+     parser = argparse.ArgumentParser()
+     parser.add_argument("--case", choices=CASES, default="precomputed_edge")
+-    case = parser.parse_args().case
++    parser.add_argument("--seed", type=int, help="Override the seed (my street cases only)")
++    parser.add_argument(
++        "--first-frames",
++        type=int,
++        help="Real frames from my video to keep at the start (num_first_chunk_conditional_frames; NVIDIA default 0)",
++    )
++    parser.add_argument(
++        "--control-guidance",
++        type=float,
++        help="How strictly to follow the edge outlines (control_guidance; NVIDIA default 1.5)",
++    )
++    parser.add_argument("--tag", default="", help="Suffix for the output file name")
++    parser.add_argument(
++        "--prompt-file",
++        type=Path,
++        help="Structured JSON prompt in NVIDIA's format, replacing the one-line prompt",
++    )
++    parser.add_argument(
++        "--negative-prompt-file",
++        type=Path,
++        help="JSON negative prompt replacing NVIDIA's negative_prompt.json (my street cases only)",
++    )
++    args = parser.parse_args()
++    case = args.case
+     require_generator_profile(
+         NIM_URL,
+         allowed_variants=("nano", "super"),
+     )
+     request = build_request(case)
++    if case in STREET_PROMPTS:
++        if args.seed is not None:
++            request["seed"] = args.seed
++        if args.first_frames is not None:
++            request["transfer"]["num_first_chunk_conditional_frames"] = args.first_frames
++        if args.control_guidance is not None:
++            request["transfer"]["control_guidance"] = args.control_guidance
++        if args.prompt_file is not None:
++            request["prompt"] = compact_json_file(args.prompt_file)  # NVIDIA's helper
++            print(f"Using prompt file {args.prompt_file}")
++        if args.negative_prompt_file is not None:
++            request["negative_prompt"] = compact_json_file(args.negative_prompt_file)  # NVIDIA's helper
++            print(f"Using negative prompt file {args.negative_prompt_file}")
++        print(
++            f"Using seed {request['seed']}, first frames "
++            f"{request['transfer']['num_first_chunk_conditional_frames']}, control guidance "
++            f"{request['transfer']['control_guidance']}"
++        )
+ 
+     response = requests.post(f"{NIM_URL}/v1/infer", json=request, timeout=3600)
+     response.raise_for_status()
+ 
+     OUTPUTS.mkdir(exist_ok=True)
+-    output = OUTPUTS / f"transfer_{case}.mp4"
++    output = OUTPUTS / f"transfer_{case}{args.tag}.mp4"
+     output.write_bytes(decode_video(response.json()["b64_video"]))
+     print(f"Saved video to {output}")
+ 
+diff --git a/.agents/skills/cookbooks/cosmos3/nim/examples/v2v.py b/.agents/skills/cookbooks/cosmos3/nim/examples/v2v.py
+index 39854d0..343d841 100644
+--- a/.agents/skills/cookbooks/cosmos3/nim/examples/v2v.py
++++ b/.agents/skills/cookbooks/cosmos3/nim/examples/v2v.py
+@@ -22,9 +22,33 @@ VIDEO = (
+ )
+ OUTPUT = Path(__file__).parent / "outputs" / "v2v.mp4"
+ 
++# --- Portfolio additions: continue my fixed-camera street clip ---
++STREET_VIDEO = COSMOS3_ROOT / "reasoner" / "assets" / "street_first7s_24fps.mp4"
++FIXED_CAMERA = (
++    " The camera is fixed on a tripod and does not move. The viewpoint, framing,"
++    " and background stay exactly the same."
++)
++STREET_PROMPTS = {
++    "street_continue": "Cars and pedestrians keep moving naturally through the street.",
++    "street_pedestrian": (
++        "A pedestrian suddenly steps off the curb into the street in front of an"
++        " approaching car, and the car brakes hard to avoid them."
++    ),
++    "street_cyclist": "A cyclist rides quickly through the street, weaving between the moving cars.",
++    # Rain test C: ask a continuation to start rain, instead of restyling with Transfer.
++    "street_rain_start": (
++        "Heavy rain begins to fall over the street. Rain streaks fall through the air,"
++        " drops splash in puddles, and the road turns wet and reflective, while cars"
++        " and pedestrians keep moving."
++    ),
++}
++CASES = ("nvidia_sample",) + tuple(STREET_PROMPTS)
++
+ 
+ def main() -> None:
+-    argparse.ArgumentParser(description=__doc__).parse_args()
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--case", choices=CASES, default="nvidia_sample")
++    case = parser.parse_args().case
+     require_generator_profile(
+         NIM_URL,
+         allowed_variants=("nano", "super"),
+@@ -47,13 +71,20 @@ def main() -> None:
+         "flow_shift": 10.0,
+         "seed": 0,
+     }
++    output = OUTPUT
++    if case != "nvidia_sample":
++        request["prompt"] = STREET_PROMPTS[case] + FIXED_CAMERA
++        request["input_reference"] = media_to_data_url(STREET_VIDEO)
++        request["condition_video_keep"] = "last"  # continue from the end of my clip
++        request["resolution"] = "720_9_16"  # my phone video is vertical
++        output = OUTPUT.with_name(f"{case}.mp4")
+ 
+     response = requests.post(f"{NIM_URL}/v1/infer", json=request, timeout=1800)
+     response.raise_for_status()
+ 
+-    OUTPUT.parent.mkdir(exist_ok=True)
+-    OUTPUT.write_bytes(decode_video(response.json()["b64_video"]))
+-    print(f"Saved video to {OUTPUT}")
++    output.parent.mkdir(exist_ok=True)
++    output.write_bytes(decode_video(response.json()["b64_video"]))
++    print(f"Saved video to {output}")
+ 
+ 
+ if __name__ == "__main__":

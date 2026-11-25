@@ -1,0 +1,72 @@
+{
+  "subjects": [
+    {
+      "description": "Cars driving along a busy city street in heavy rain, headlights on, windshield wipers moving.",
+      "appearance_details": "Car bodies glossy and streaked with water; spray kicked up behind the tires; raindrops bouncing off roofs and hoods.",
+      "relationship": "Traffic sharing the street with pedestrians and a cyclist.",
+      "location": "In the road lanes, following the same paths as in the original footage.",
+      "relative_size": "Small to medium within frame",
+      "orientation": "Moving along the road in both directions",
+      "action": "Driving slowly and carefully through the rain.",
+      "state_changes": "Water continuously splashes from the tires as they roll through puddles.",
+      "number_of_subjects": "Several cars"
+    },
+    {
+      "description": "Pedestrians walking on the sidewalk and crossing the street in heavy rain.",
+      "appearance_details": "Rain jackets, hoods up, some holding open umbrellas; clothing darkened by water.",
+      "relationship": "People moving through the street alongside the traffic.",
+      "location": "On the sidewalks and crossings, following the same paths as in the original footage.",
+      "relative_size": "Small within frame",
+      "orientation": "Walking in different directions",
+      "action": "Walking quickly with heads down against the rain.",
+      "state_changes": "Umbrellas shed streams of water as people move.",
+      "number_of_subjects": "Several people"
+    }
+  ],
+  "background_setting": "The same busy city street as the source video, with the same road, sidewalks, buildings and parked vehicles in the same positions, during a heavy downpour. Rain falls visibly across the whole frame as bright diagonal streaks. The road surface is flooded with shallow puddles, and raindrops splash and ripple in every puddle. Water runs along the curbs and gutters.",
+  "lighting": {
+    "conditions": "Overcast, dark rainy afternoon under thick grey storm clouds",
+    "direction": "Flat, diffused light from the grey sky; car headlights and taillights glow through the rain",
+    "shadows": "Almost no shadows because of the heavy cloud cover",
+    "illumination_effect": "Headlights and storefront lights reflect as long streaks on the wet road; falling rain is backlit and clearly visible as streaks"
+  },
+  "aesthetics": {
+    "composition": "Vertical frame of the street from a fixed position, identical to the source video",
+    "color_scheme": "Desaturated greys and blues with warm reflections from headlights and taillights",
+    "mood_atmosphere": "Wet, stormy, gloomy, realistic",
+    "patterns": "Diagonal rain streaks across the entire frame; expanding ripple rings in puddles"
+  },
+  "cinematography": {
+    "camera_motion": "Static",
+    "framing": "Same framing as the source video",
+    "camera_angle": "Same as the source video",
+    "depth_of_field": "Deep",
+    "focus": "Sharp focus on the street; falling raindrops visible in the foreground and background"
+  },
+  "style_medium": "Live-action video",
+  "artistic_style": "Realistic, documentary-style street footage",
+  "context": "Real street footage restyled to heavy rain for autonomous-driving and robotics edge-case testing",
+  "actions": [
+    {
+      "time": "0:00-0:04",
+      "description": "Heavy rain falls continuously across the whole street while cars and pedestrians move through it along the same paths as in the original footage, tires splashing through puddles."
+    }
+  ],
+  "text_and_signage_elements": [],
+  "segments": [
+    {
+      "segment_index": 0,
+      "time_range": "0:00-0:04",
+      "description": "A continuous heavy downpour over the busy street, with visible falling rain streaks, splashing puddles and wet reflections throughout.",
+      "key_changes": "Rain keeps falling the entire time; puddles ripple constantly.",
+      "camera": "Static view, identical to the source video."
+    }
+  ],
+  "transitions": [],
+  "temporal_caption": "From 0:00 to 0:04, heavy rain falls visibly across the busy street as cars drive through puddles with spray behind their tires and pedestrians hurry by under umbrellas; the camera does not move.",
+  "audio_description": "Loud steady rain, tires hissing on wet asphalt, splashing water.",
+  "resolution": {"W": 720, "H": 1280},
+  "aspect_ratio": "9,16",
+  "duration": "4s",
+  "fps": 30
+}
